@@ -1,0 +1,74 @@
+{% extends 'gym/base.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>🏋️ Coaching Staff</h1>
+        <p style="color: var(--text-muted);">All elite trainers and their specialties from the database.</p>
+    </div>
+    {% if user.is_staff %}
+    <a href="{% url 'add_trainer' %}" class="btn">+ Add Trainer</a>
+    {% endif %}
+</div>
+
+<!-- Stats row -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div class="card" style="text-align:center; padding:1.25rem; animation-delay:0.1s;">
+        <div style="font-size:2rem; color:var(--primary); font-weight:800;">{{ trainers.count }}</div>
+        <div style="color:var(--text-muted); font-size:0.85rem;">Total Trainers</div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+    {% for trainer in trainers %}
+    <div class="card" style="animation-delay: {{ forloop.counter0|add:1 }}00ms; position: relative;">
+        {% if user.is_staff %}
+        <form method="POST" action="{% url 'delete_trainer' trainer.id %}" style="position:absolute; top:1rem; right:1rem;"
+              onsubmit="return confirm('Delete trainer {{ trainer.name }}?')">
+            {% csrf_token %}
+            <button type="submit" class="btn-danger" title="Delete Trainer">🗑</button>
+        </form>
+        {% endif %}
+
+        <div style="display: flex; align-items: flex-start; gap: 1rem;">
+            <div style="flex-shrink:0; width:56px; height:56px; background: rgba(0,255,136,0.1);
+                        border-radius:50%; display:flex; align-items:center; justify-content:center;
+                        font-size:1.5rem; border:1px solid rgba(0,255,136,0.3);">
+                🧑‍🏋️
+            </div>
+            <div style="flex:1;">
+                <h3 style="margin-bottom:0.25rem; font-size:1.1rem;">{{ trainer.name }}</h3>
+                <span style="background:rgba(0,229,255,0.12); color:#00e5ff; font-size:0.78rem;
+                             font-weight:700; padding:0.2rem 0.6rem; border-radius:20px; text-transform:uppercase;">
+                    {{ trainer.specialty }}
+                </span>
+            </div>
+        </div>
+
+        <div style="margin-top:1.25rem; display:flex; flex-direction:column; gap:0.5rem;">
+            <div style="display:flex; align-items:center; gap:0.5rem; color:var(--text-muted); font-size:0.88rem;">
+                <span>📞</span> {{ trainer.phone }}
+            </div>
+            {% if trainer.email %}
+            <div style="display:flex; align-items:center; gap:0.5rem; color:var(--text-muted); font-size:0.88rem;">
+                <span>📧</span> {{ trainer.email }}
+            </div>
+            {% endif %}
+            <div style="display:flex; align-items:center; gap:0.5rem; color:var(--primary); font-size:0.88rem; font-weight:600;">
+                <span>⭐</span> {{ trainer.experience_years }} year{{ trainer.experience_years|pluralize }} of experience
+            </div>
+            <div style="display:flex; align-items:center; gap:0.5rem; color:var(--text-muted); font-size:0.85rem;">
+                <span>👥</span>
+                {{ trainer.member_set.count }} member{{ trainer.member_set.count|pluralize }} assigned
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-muted);">
+        <div style="font-size:3rem; margin-bottom:1rem;">🏋️</div>
+        <h3 style="margin-bottom:0.5rem;">No Trainers Found</h3>
+        <p>{% if user.is_staff %}Click "Add Trainer" to add your first trainer.{% else %}No trainers available currently.{% endif %}</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

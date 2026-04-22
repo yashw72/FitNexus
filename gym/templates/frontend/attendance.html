@@ -1,0 +1,176 @@
+{% extends 'gym/base.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>📋 Attendance Logs</h1>
+        <p style="color:var(--text-muted);">Track daily check-ins and check-outs from the database.</p>
+    </div>
+    <button onclick="document.getElementById('markModal').style.display='flex'" class="btn">
+        ✅ Mark Attendance
+    </button>
+</div>
+
+<!-- Stats Bar -->
+<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1rem; margin-bottom:2rem;">
+    <div class="card" style="text-align:center; padding:1.25rem; animation-delay:0.05s;">
+        <div style="font-size:2rem; font-weight:800; color:#00e5ff;">{{ today_count }}</div>
+        <div style="color:var(--text-muted); font-size:0.82rem; margin-top:0.25rem;">Today's Check-ins</div>
+    </div>
+    <div class="card" style="text-align:center; padding:1.25rem; animation-delay:0.1s;">
+        <div style="font-size:2rem; font-weight:800; color:var(--primary);">{{ present_count }}</div>
+        <div style="color:var(--text-muted); font-size:0.82rem; margin-top:0.25rem;">Present</div>
+    </div>
+    <div class="card" style="text-align:center; padding:1.25rem; animation-delay:0.15s;">
+        <div style="font-size:2rem; font-weight:800; color:#ffea00;">{{ late_count }}</div>
+        <div style="color:var(--text-muted); font-size:0.82rem; margin-top:0.25rem;">Late</div>
+    </div>
+    <div class="card" style="text-align:center; padding:1.25rem; animation-delay:0.2s;">
+        <div style="font-size:2rem; font-weight:800; color:#ff4d6d;">{{ absent_count }}</div>
+        <div style="color:var(--text-muted); font-size:0.82rem; margin-top:0.25rem;">Absent</div>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="card" style="margin-bottom:1.5rem; padding:1.25rem; animation-delay:0.25s;">
+    <form method="GET" style="display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap;">
+        <div style="flex:1; min-width:180px;">
+            <label class="form-label">🔍 Search Member</label>
+            <input type="text" name="member" value="{{ member_search }}" class="form-input" placeholder="Enter member name...">
+        </div>
+        <div style="flex:1; min-width:160px;">
+            <label class="form-label">📅 Filter by Date</label>
+            <input type="date" name="date" value="{{ date_filter }}" class="form-input">
+        </div>
+        <div style="display:flex; gap:0.5rem;">
+            <button type="submit" class="btn" style="padding:0.75rem 1.25rem;">Filter</button>
+            <a href="{% url 'attendance' %}" class="btn btn-outline" style="padding:0.75rem 1.25rem;">Clear</a>
+        </div>
+    </form>
+</div>
+
+<!-- Attendance Table -->
+<div class="table-container" style="animation-delay:0.3s;">
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Member Name</th>
+                <th>Status</th>
+                <th>Check-In Time</th>
+                <th>Check-Out Time</th>
+                <th style="text-align:center;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in attendance_records %}
+            <tr>
+                <td style="color:var(--text-muted); font-size:0.85rem;">{{ forloop.counter }}</td>
+                <td style="color:var(--text-muted);">{{ log.date|date:"d M Y" }}</td>
+                <td style="font-weight:600;">{{ log.member.first_name }} {{ log.member.last_name }}</td>
+                <td>
+                    {% if log.status == 'Present' %}
+                        <span class="badge badge-present">✅ Present</span>
+                    {% elif log.status == 'Late' %}
+                        <span class="badge badge-late">⏰ Late</span>
+                    {% else %}
+                        <span class="badge badge-absent">❌ Absent</span>
+                    {% endif %}
+                </td>
+                <td style="color:var(--primary);">
+                    {{ log.check_in_time|time:"h:i A"|default:"—" }}
+                </td>
+                <td style="color:var(--text-muted);">
+                    {{ log.check_out_time|time:"h:i A"|default:"—" }}
+                </td>
+                <td style="text-align:center;">
+                    {% if not log.check_out_time and log.date == today %}
+                    <form method="POST" action="{% url 'checkout_member' log.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" style="background:rgba(0,229,255,0.12); color:#00e5ff;
+                            border:1px solid rgba(0,229,255,0.3); padding:0.35rem 0.8rem;
+                            border-radius:8px; font-size:0.8rem; font-weight:600; cursor:pointer;
+                            transition:all 0.2s;" onmouseover="this.style.background='rgba(0,229,255,0.25)'"
+                            onmouseout="this.style.background='rgba(0,229,255,0.12)'">
+                            🚪 Check Out
+                        </button>
+                    </form>
+                    {% elif log.check_out_time %}
+                        <span style="color:var(--text-muted); font-size:0.8rem;">Completed</span>
+                    {% else %}
+                        <span style="color:var(--text-muted); font-size:0.8rem;">—</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" style="text-align:center; color:var(--text-muted); padding:3rem;">
+                    <div style="font-size:2.5rem; margin-bottom:0.75rem;">📋</div>
+                    No attendance records found.
+                    {% if date_filter or member_search %}Try clearing the filters.{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Mark Attendance Modal -->
+<div id="markModal" style="display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,0.7); backdrop-filter:blur(6px);
+    z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:#12141f; border:1px solid rgba(0,255,136,0.2);
+        border-radius:20px; padding:2.5rem; width:100%; max-width:460px;
+        box-shadow:0 30px 60px rgba(0,0,0,0.6); animation:popIn 0.25s ease;">
+        <h2 style="margin-bottom:0.5rem;">✅ Mark Attendance</h2>
+        <p style="color:var(--text-muted); margin-bottom:1.75rem; font-size:0.9rem;">
+            Select a member and status to log today's attendance in the database.
+        </p>
+        <form method="POST" action="{% url 'mark_attendance' %}" style="display:flex; flex-direction:column; gap:1rem;">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Select Member *</label>
+                <select name="member_id" class="form-input" required>
+                    <option value="">-- Choose a Member --</option>
+                    {% for member in members %}
+                    <option value="{{ member.id }}">{{ member.first_name }} {{ member.last_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Attendance Status *</label>
+                <select name="status" class="form-input">
+                    <option value="Present">✅ Present</option>
+                    <option value="Late">⏰ Late</option>
+                    <option value="Absent">❌ Absent</option>
+                </select>
+            </div>
+            <div style="display:flex; gap:1rem; margin-top:0.5rem;">
+                <button type="button" onclick="document.getElementById('markModal').style.display='none'"
+                    style="flex:1; padding:0.85rem; border-radius:10px; border:1px solid var(--border);
+                    background:transparent; color:#fff; cursor:pointer; font-size:0.95rem; font-weight:600;">
+                    Cancel
+                </button>
+                <button type="submit" class="btn" style="flex:1; padding:0.85rem; font-size:0.95rem;">
+                    Save to Database
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+@keyframes popIn {
+    from { transform:scale(0.85); opacity:0; }
+    to   { transform:scale(1); opacity:1; }
+}
+</style>
+
+<script>
+// Close modal on backdrop click
+document.getElementById('markModal').addEventListener('click', function(e) {
+    if (e.target === this) this.style.display = 'none';
+});
+</script>
+{% endblock %}

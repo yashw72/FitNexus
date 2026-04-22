@@ -1,0 +1,44 @@
+{% extends 'gym/base.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Membership Plans</h1>
+        <p style="color: var(--text-muted);">Available subscription tiers for members.</p>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 2rem; animation-delay: 0.2s;">
+    {% for plan in plans %}
+    <div class="card" style="text-align: center; position: relative; overflow: hidden;">
+        {% if forloop.counter == 2 %}
+            <div style="position: absolute; top: 1rem; right: -2rem; background: var(--primary); color: #000; padding: 0.25rem 3rem; transform: rotate(45deg); font-weight: 800; font-size: 0.75rem; letter-spacing: 1px;">POPULAR</div>
+        {% endif %}
+        
+        <h2 style="font-size: 2rem; margin-bottom: 1rem;">{{ plan.name }}</h2>
+        <div style="font-size: 3rem; font-weight: 800; color: var(--primary); margin-bottom: 1rem;">
+            ₹{{ plan.price }}<span style="font-size: 1rem; color: var(--text-muted); font-weight: 400;">/ {{ plan.duration_months }} mo</span>
+        </div>
+        
+        <ul style="list-style: none; padding: 0; margin-bottom: 2rem; text-align: left; display: inline-block;">
+            <li style="margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem;"><span style="color: var(--primary);">✓</span> Full Gym Access</li>
+            <li style="margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem;"><span style="color: var(--primary);">✓</span> Locker Room Privileges</li>
+            {% if plan.duration_months > 1 %}
+            <li style="margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem;"><span style="color: var(--primary);">✓</span> Goal Assessment Session</li>
+            {% endif %}
+            {% if plan.duration_months > 6 %}
+            <li style="margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem;"><span style="color: var(--primary);">✓</span> 1 Free Personal Training Session</li>
+            {% endif %}
+        </ul>
+        
+        <div style="padding-top: 1rem; border-top: 1px solid var(--border);">
+            <button class="btn btn-outline" style="width: 100%;">Contact to Subscribe</button>
+        </div>
+    </div>
+    {% empty %}
+    <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted);">
+        No plans available right now.
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
