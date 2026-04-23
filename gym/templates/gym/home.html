@@ -1,0 +1,406 @@
+{% extends 'gym/base.html' %}
+{% block content %}
+<style>
+/* ═══ CANVAS PARTICLES ══════════════════════════════════ */
+#particles { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+
+/* ═══ LAYOUT ════════════════════════════════════════════ */
+.dash { position:relative; z-index:1; }
+
+/* ═══ HERO HEADER ═══════════════════════════════════════ */
+.hero {
+    background: linear-gradient(135deg, rgba(0,255,136,0.08) 0%, rgba(0,180,255,0.05) 50%, rgba(176,110,255,0.08) 100%);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 24px;
+    padding: 2.2rem 2.5rem;
+    margin-bottom: 1.75rem;
+    display: flex; justify-content: space-between; align-items: center;
+    animation: fadeUp .5s ease backwards;
+    position: relative; overflow: hidden;
+}
+.hero::before {
+    content:'';
+    position:absolute; top:-60px; right:-60px;
+    width:220px; height:220px; border-radius:50%;
+    background: radial-gradient(circle, rgba(0,255,136,0.12), transparent 70%);
+    pointer-events:none;
+}
+.hero-greeting { font-size:.85rem; color:#8892b0; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:.5rem; }
+.hero-name {
+    font-size:2.1rem; font-weight:800; letter-spacing:-1px; line-height:1.1;
+    background: linear-gradient(135deg, #fff 30%, #00ff88 80%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+.hero-sub { color:#8892b0; font-size:.9rem; margin-top:.5rem; }
+.hero-right { text-align:right; }
+.clock-display {
+    font-size:2.6rem; font-weight:800; color:#00ff88;
+    font-variant-numeric:tabular-nums; letter-spacing:2px;
+    text-shadow: 0 0 20px rgba(0,255,136,0.4);
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+@keyframes pulse-glow {
+    0%,100%{ text-shadow:0 0 20px rgba(0,255,136,0.3); }
+    50%    { text-shadow:0 0 35px rgba(0,255,136,0.7), 0 0 60px rgba(0,255,136,0.3); }
+}
+.clock-date { color:#8892b0; font-size:.82rem; margin-top:.3rem; }
+.online-pill {
+    display:inline-flex; align-items:center; gap:.4rem;
+    background:rgba(0,255,136,0.1); border:1px solid rgba(0,255,136,0.2);
+    border-radius:20px; padding:.3rem .8rem; font-size:.75rem; font-weight:600; color:#00ff88;
+    margin-top:.6rem;
+}
+.online-dot { width:7px; height:7px; border-radius:50%; background:#00ff88; animation:blink 1.4s ease infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ═══ STATS ROW ══════════════════════════════════════════ */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+}
+@media(max-width:1100px){ .stats-row{ grid-template-columns:repeat(3,1fr); } }
+@media(max-width:640px) { .stats-row{ grid-template-columns:repeat(2,1fr); } }
+
+.sc {
+    border-radius:18px; padding:1.4rem 1.2rem;
+    border: 1px solid rgba(255,255,255,0.07);
+    position:relative; overflow:hidden; cursor:default;
+    transition: transform .3s ease, box-shadow .3s ease;
+    animation: popIn .5s cubic-bezier(.34,1.56,.64,1) backwards;
+}
+.sc:hover { transform:translateY(-6px) scale(1.03); }
+.sc::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:18px 18px 0 0; }
+.sc::after  { content:''; position:absolute; bottom:-30px; right:-30px; width:80px; height:80px; border-radius:50%; opacity:.15; }
+
+.sc-1{ background:linear-gradient(145deg,rgba(0,255,136,.08),rgba(0,255,136,.02)); }
+.sc-1::before{ background:linear-gradient(90deg,#00ff88,#00e676); }
+.sc-1::after { background:#00ff88; }
+.sc-1:hover  { box-shadow:0 20px 50px rgba(0,255,136,.18); border-color:rgba(0,255,136,.3); }
+
+.sc-2{ background:linear-gradient(145deg,rgba(0,180,255,.08),rgba(0,180,255,.02)); }
+.sc-2::before{ background:linear-gradient(90deg,#00b4ff,#0096ff); }
+.sc-2::after { background:#00b4ff; }
+.sc-2:hover  { box-shadow:0 20px 50px rgba(0,180,255,.18); border-color:rgba(0,180,255,.3); }
+
+.sc-3{ background:linear-gradient(145deg,rgba(176,110,255,.08),rgba(176,110,255,.02)); }
+.sc-3::before{ background:linear-gradient(90deg,#b06eff,#7c3aed); }
+.sc-3::after { background:#b06eff; }
+.sc-3:hover  { box-shadow:0 20px 50px rgba(176,110,255,.18); border-color:rgba(176,110,255,.3); }
+
+.sc-4{ background:linear-gradient(145deg,rgba(255,154,60,.08),rgba(255,154,60,.02)); }
+.sc-4::before{ background:linear-gradient(90deg,#ff9a3c,#ff6b35); }
+.sc-4::after { background:#ff9a3c; }
+.sc-4:hover  { box-shadow:0 20px 50px rgba(255,154,60,.18); border-color:rgba(255,154,60,.3); }
+
+.sc-5{ background:linear-gradient(145deg,rgba(255,234,0,.08),rgba(255,234,0,.02)); }
+.sc-5::before{ background:linear-gradient(90deg,#ffea00,#f59e0b); }
+.sc-5::after { background:#ffea00; }
+.sc-5:hover  { box-shadow:0 20px 50px rgba(255,234,0,.18); border-color:rgba(255,234,0,.3); }
+
+.sc-6{ background:linear-gradient(145deg,rgba(255,107,203,.08),rgba(255,107,203,.02)); }
+.sc-6::before{ background:linear-gradient(90deg,#ff6bcb,#e11d48); }
+.sc-6::after { background:#ff6bcb; }
+.sc-6:hover  { box-shadow:0 20px 50px rgba(255,107,203,.18); border-color:rgba(255,107,203,.3); }
+
+.sc-icon { font-size:1.5rem; margin-bottom:.8rem; display:block; }
+.sc-val  { font-size:2.1rem; font-weight:800; line-height:1; letter-spacing:-1px; margin-bottom:.3rem; }
+.sc-lbl  { font-size:.72rem; color:#8892b0; font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
+.sc-1 .sc-val { color:#00ff88; }
+.sc-2 .sc-val { color:#00b4ff; }
+.sc-3 .sc-val { color:#b06eff; }
+.sc-4 .sc-val { color:#ff9a3c; }
+.sc-5 .sc-val { color:#ffea00; }
+.sc-6 .sc-val { color:#ff6bcb; }
+
+/* ═══ MAIN GRID ══════════════════════════════════════════ */
+.main-grid {
+    display:grid;
+    grid-template-columns: 1fr 320px;
+    gap:1.25rem;
+}
+@media(max-width:900px){ .main-grid{ grid-template-columns:1fr; } }
+
+/* ═══ ATTENDANCE TABLE ════════════════════════════════════ */
+.panel {
+    background:rgba(255,255,255,0.035);
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:18px; overflow:hidden;
+    animation: fadeUp .6s ease backwards .15s;
+}
+.panel-head {
+    padding:1.2rem 1.5rem;
+    display:flex; justify-content:space-between; align-items:center;
+    border-bottom:1px solid rgba(255,255,255,0.06);
+    background:rgba(0,0,0,.15);
+}
+.panel-title { font-size:1rem; font-weight:700; display:flex; align-items:center; gap:.5rem; }
+.view-all {
+    font-size:.78rem; color:#00ff88; text-decoration:none; font-weight:600;
+    padding:.3rem .8rem; border:1px solid rgba(0,255,136,.25); border-radius:20px;
+    transition:all .25s;
+}
+.view-all:hover { background:rgba(0,255,136,.1); }
+
+table { width:100%; border-collapse:collapse; }
+th,td { padding:.9rem 1.3rem; border-bottom:1px solid rgba(255,255,255,.05); font-size:.87rem; }
+th { color:#8892b0; font-size:.72rem; text-transform:uppercase; letter-spacing:.5px; font-weight:600; background:rgba(0,0,0,.1); }
+tbody tr { transition:background .2s; }
+tbody tr:hover { background:rgba(255,255,255,.025); }
+tbody tr:last-child td { border-bottom:none; }
+
+.mem-cell { display:flex; align-items:center; gap:.6rem; }
+.av {
+    width:32px; height:32px; border-radius:50%; flex-shrink:0;
+    background:linear-gradient(135deg,#00ff88,#00b4ff);
+    display:flex; align-items:center; justify-content:center;
+    font-size:.7rem; font-weight:800; color:#000;
+}
+.badge { padding:.2rem .6rem; border-radius:20px; font-size:.72rem; font-weight:700; }
+.bp { background:rgba(0,255,136,.12); color:#00ff88; }
+.bl { background:rgba(255,234,0,.12);  color:#ffea00; }
+.ba { background:rgba(255,0,85,.12);   color:#ff4d6d; }
+
+/* ═══ SIDEBAR PANELS ═════════════════════════════════════ */
+.side-col { display:flex; flex-direction:column; gap:1.25rem; }
+
+/* Quick Actions */
+.qa-list { padding:.75rem; }
+.qa {
+    display:flex; align-items:center; gap:.85rem;
+    padding:.9rem 1rem; border-radius:12px;
+    text-decoration:none; color:#fff; font-size:.875rem; font-weight:600;
+    border:1px solid transparent;
+    transition:all .25s ease; margin-bottom:.5rem; position:relative; overflow:hidden;
+}
+.qa:last-child { margin-bottom:0; }
+.qa::after {
+    content:'›'; position:absolute; right:1rem; color:#8892b0;
+    font-size:1.1rem; transition:all .25s;
+}
+.qa:hover::after { right:.75rem; color:#00ff88; }
+.qa:hover { background:rgba(0,255,136,.07); border-color:rgba(0,255,136,.2); transform:translateX(4px); }
+.qi { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:.95rem; flex-shrink:0; }
+.q1 .qi { background:rgba(0,255,136,.12); } .q2 .qi { background:rgba(0,180,255,.12); }
+.q3 .qi { background:rgba(176,110,255,.12); } .q4 .qi { background:rgba(255,154,60,.12); }
+.q5 .qi { background:rgba(255,234,0,.12); }  .q6 .qi { background:rgba(255,107,203,.12); }
+
+/* Revenue card */
+.rev-card {
+    background: linear-gradient(135deg, rgba(0,255,136,.1), rgba(0,180,255,.06));
+    border:1px solid rgba(0,255,136,.2);
+    border-radius:18px; padding:1.5rem;
+    animation: fadeUp .6s ease backwards .25s;
+}
+.rev-label { font-size:.72rem; color:#8892b0; font-weight:600; text-transform:uppercase; letter-spacing:.5px; margin-bottom:.4rem; }
+.rev-amount {
+    font-size:2.5rem; font-weight:800; letter-spacing:-1px;
+    background:linear-gradient(135deg,#00ff88,#00b4ff);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+.rev-sub { font-size:.8rem; color:#8892b0; margin-top:.4rem; }
+
+/* Health bar */
+.health-item { margin-bottom:.85rem; }
+.health-item:last-child { margin-bottom:0; }
+.health-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:.4rem; font-size:.82rem; }
+.health-val { font-weight:700; }
+.bar-track { height:6px; background:rgba(255,255,255,.07); border-radius:10px; overflow:hidden; }
+.bar-fill  { height:100%; border-radius:10px; transition:width 1.2s cubic-bezier(.4,0,.2,1); width:0; }
+.bar-green  { background:linear-gradient(90deg,#00ff88,#00e676); }
+.bar-yellow { background:linear-gradient(90deg,#ffea00,#f59e0b); }
+.bar-red    { background:linear-gradient(90deg,#ff4d6d,#e11d48); }
+
+/* ═══ KEYFRAMES ══════════════════════════════════════════ */
+@keyframes fadeUp { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
+@keyframes popIn  { from{opacity:0;transform:scale(.85)}       to{opacity:1;transform:scale(1)} }
+</style>
+
+<canvas id="particles"></canvas>
+
+<div class="dash">
+
+    <!-- HERO -->
+    <div class="hero">
+        <div>
+            <div class="hero-greeting">Elite Gym Management</div>
+            <div class="hero-name" id="greeting">Welcome, {{ user.username }} 👋</div>
+            <div class="hero-sub">Here's your gym at a glance — {% now "l, d F Y" %}</div>
+        </div>
+        <div class="hero-right">
+            <div class="clock-display" id="clock">--:--:--</div>
+            <div class="clock-date">IST — India Standard Time</div>
+            <div class="online-pill"><span class="online-dot"></span> System Online</div>
+        </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+        <div class="sc sc-1" style="animation-delay:.05s">
+            <span class="sc-icon">👥</span>
+            <div class="sc-val" data-count="{{ total_members }}">0</div>
+            <div class="sc-lbl">Members</div>
+        </div>
+        <div class="sc sc-2" style="animation-delay:.1s">
+            <span class="sc-icon">🏋️</span>
+            <div class="sc-val" data-count="{{ total_trainers }}">0</div>
+            <div class="sc-lbl">Trainers</div>
+        </div>
+        <div class="sc sc-3" style="animation-delay:.15s">
+            <span class="sc-icon">⚙️</span>
+            <div class="sc-val" data-count="{{ total_equipment }}">0</div>
+            <div class="sc-lbl">Equipment</div>
+        </div>
+        <div class="sc sc-4" style="animation-delay:.2s">
+            <span class="sc-icon">📋</span>
+            <div class="sc-val" data-count="{{ today_attendance }}">0</div>
+            <div class="sc-lbl">Today's Check-ins</div>
+        </div>
+        <div class="sc sc-5" style="animation-delay:.25s">
+            <span class="sc-icon">🔧</span>
+            <div class="sc-val" data-count="{{ maintenance_count }}">0</div>
+            <div class="sc-lbl">Maintenance</div>
+        </div>
+        <div class="sc sc-6" style="animation-delay:.3s">
+            <span class="sc-icon">💰</span>
+            <div class="sc-val">₹{{ revenue|floatformat:0 }}</div>
+            <div class="sc-lbl">Est. Revenue</div>
+        </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="main-grid">
+
+        <!-- LEFT: Recent Attendance -->
+        <div class="panel">
+            <div class="panel-head">
+                <div class="panel-title">🕒 Recent Attendance</div>
+                <a href="{% url 'attendance' %}" class="view-all">View All →</a>
+            </div>
+            {% if recent_attendance %}
+            <table>
+                <thead>
+                    <tr><th>Member</th><th>Date</th><th>Check-In</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    {% for r in recent_attendance %}
+                    <tr>
+                        <td>
+                            <div class="mem-cell">
+                                <div class="av">{{ r.member.first_name.0 }}{{ r.member.last_name.0 }}</div>
+                                <strong>{{ r.member }}</strong>
+                            </div>
+                        </td>
+                        <td style="color:#8892b0;font-size:.82rem;">{{ r.date }}</td>
+                        <td style="color:#8892b0;">{{ r.check_in_time|default:"—" }}</td>
+                        <td>
+                            <span class="badge {% if r.status == 'Present' %}bp{% elif r.status == 'Late' %}bl{% else %}ba{% endif %}">{{ r.status }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="padding:3.5rem;text-align:center;color:#8892b0;">
+                <div style="font-size:2.5rem;margin-bottom:.75rem;">📋</div>
+                <p>No attendance today. <a href="{% url 'attendance' %}" style="color:#00ff88;">Mark now →</a></p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- RIGHT SIDEBAR -->
+        <div class="side-col">
+
+            <!-- Revenue -->
+            <div class="rev-card">
+                <div class="rev-label">💰 Monthly Revenue Estimate</div>
+                <div class="rev-amount">₹{{ revenue|floatformat:0 }}</div>
+                <div class="rev-sub">Based on active member plans</div>
+                <div style="margin-top:1.2rem;">
+                    <div class="health-item">
+                        <div class="health-row">
+                            <span style="color:#8892b0;font-size:.8rem;">✅ Active Equipment</span>
+                            <span class="health-val" style="color:#00ff88;font-size:.82rem;">{{ active_pct|default:"–" }}%</span>
+                        </div>
+                        <div class="bar-track"><div class="bar-fill bar-green" data-w="{{ active_pct|default:0 }}"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="panel">
+                <div class="panel-head">
+                    <div class="panel-title">⚡ Quick Actions</div>
+                </div>
+                <div class="qa-list">
+                    <a href="{% url 'add_member' %}"    class="qa q1"><div class="qi">➕</div> Add Member</a>
+                    <a href="{% url 'add_trainer' %}"   class="qa q2"><div class="qi">🏋️</div> Add Trainer</a>
+                    <a href="{% url 'add_equipment' %}" class="qa q3"><div class="qi">⚙️</div> Add Equipment</a>
+                    <a href="{% url 'attendance' %}"    class="qa q4"><div class="qi">📋</div> Mark Attendance</a>
+                    <a href="{% url 'members' %}"       class="qa q5"><div class="qi">👥</div> View Members</a>
+                    <a href="{% url 'plans' %}"         class="qa q6"><div class="qi">💳</div> View Plans</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+/* Live clock */
+(function tick(){
+    const n=new Date();
+    const pad=v=>String(v).padStart(2,'0');
+    document.getElementById('clock').textContent=pad(n.getHours())+':'+pad(n.getMinutes())+':'+pad(n.getSeconds());
+    setTimeout(tick,1000);
+})();
+
+/* Greeting */
+const h=new Date().getHours();
+const gr=h<12?'Good Morning':'Good Afternoon, ';
+if(h>=17) document.getElementById('greeting').textContent='Good Evening, {{ user.username }} 👋';
+else if(h>=12) document.getElementById('greeting').textContent='Good Afternoon, {{ user.username }} 👋';
+else document.getElementById('greeting').textContent='Good Morning, {{ user.username }} 👋';
+
+/* Count-up */
+document.querySelectorAll('[data-count]').forEach(el=>{
+    const target=parseInt(el.dataset.count)||0;
+    if(!target){el.textContent='0';return;}
+    let v=0; const step=Math.max(1,Math.ceil(target/50));
+    const t=setInterval(()=>{ v=Math.min(v+step,target); el.textContent=v; if(v>=target)clearInterval(t); },18);
+});
+
+/* Bar fills */
+document.querySelectorAll('.bar-fill[data-w]').forEach(b=>{
+    setTimeout(()=>{ b.style.width=Math.min(100,parseInt(b.dataset.w)||0)+'%'; },400);
+});
+
+/* Particle canvas */
+const canvas=document.getElementById('particles');
+const ctx=canvas.getContext('2d');
+let W,H,pts=[];
+function resize(){ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; }
+resize(); window.addEventListener('resize',resize);
+for(let i=0;i<90;i++) pts.push({
+    x:Math.random()*2000, y:Math.random()*1200,
+    r:Math.random()*1.4+.3,
+    vx:(Math.random()-.5)*.25, vy:(Math.random()-.5)*.25,
+    a:Math.random()*.6+.1
+});
+function draw(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>{
+        p.x+=p.vx; p.y+=p.vy;
+        if(p.x<0)p.x=W; if(p.x>W)p.x=0;
+        if(p.y<0)p.y=H; if(p.y>H)p.y=0;
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        ctx.fillStyle=`rgba(0,255,136,${p.a})`;
+        ctx.fill();
+    });
+    requestAnimationFrame(draw);
+}
+draw();
+</script>
+{% endblock %}

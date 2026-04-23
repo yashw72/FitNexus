@@ -1,0 +1,101 @@
+{% extends 'gym/base.html' %}
+{% block content %}
+<style>
+    .trainers-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    .trainer-card {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 16px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    .trainer-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(0,255,136,0.25);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+    .trainer-avatar {
+        width: 48px; height: 48px; border-radius: 50%;
+        background: linear-gradient(135deg, #00ff88, #00b4ff);
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 1rem; font-weight: 800; color: #000; flex-shrink: 0;
+    }
+    .trainer-header { display: flex; align-items: center; gap: 0.9rem; margin-bottom: 1rem; }
+    .trainer-name { font-size: 1rem; font-weight: 700; }
+    .specialty-tag {
+        display: inline-block; padding: 0.2rem 0.65rem;
+        background: rgba(0,255,136,0.12); color: #00ff88;
+        border-radius: 20px; font-size: 0.72rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.5px; margin-top: 0.2rem;
+    }
+    .trainer-info { display: flex; flex-direction: column; gap: 0.45rem; font-size: 0.85rem; color: #8892b0; }
+    .trainer-info .highlight { color: #ffea00; font-weight: 600; }
+    .btn-danger {
+        background: rgba(255,77,109,0.15); color: #ff4d6d;
+        border: 1px solid rgba(255,77,109,0.35);
+        padding: 0.35rem 0.8rem; border-radius: 8px;
+        font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.3s;
+    }
+    .btn-danger:hover { background: rgba(255,77,109,0.3); }
+    .stat-banner {
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 14px; padding: 1.5rem 2rem; text-align: center; margin-bottom: 2rem;
+    }
+    .stat-banner .num { font-size: 3rem; font-weight: 800; color: #00ff88; line-height: 1; }
+    .stat-banner .lbl { color: #8892b0; font-size: 0.85rem; margin-top: 0.3rem; }
+    .delete-btn-abs { position: absolute; top: 1rem; right: 1rem; }
+</style>
+
+<div class="page-header">
+    <div>
+        <h1 style="font-size:1.8rem; font-weight:800;">🏋️ Coaching Staff</h1>
+        <p style="color:#8892b0; margin-top:0.3rem;">All elite trainers and their specialties from the database.</p>
+    </div>
+    {% if user.is_staff %}<a href="{% url 'add_trainer' %}" class="btn">+ Add Trainer</a>{% endif %}
+</div>
+
+<div class="stat-banner">
+    <div class="num">{{ trainers|length }}</div>
+    <div class="lbl">Total Trainers</div>
+</div>
+
+{% if trainers %}
+<div class="trainers-grid">
+    {% for trainer in trainers %}
+    <div class="trainer-card">
+        {% if user.is_staff %}
+        <form method="post" action="{% url 'delete_trainer' trainer.id %}"
+              onsubmit="return confirm('Delete trainer {{ trainer.name }}?')" class="delete-btn-abs">
+            {% csrf_token %}
+            <button type="submit" class="btn-danger" title="Delete">🗑️</button>
+        </form>
+        {% endif %}
+        <div class="trainer-header">
+            <div class="trainer-avatar">{{ trainer.name|slice:":2"|upper }}</div>
+            <div>
+                <div class="trainer-name">{{ trainer.name }}</div>
+                <span class="specialty-tag">{{ trainer.specialty }}</span>
+            </div>
+        </div>
+        <div class="trainer-info">
+            <span>📞 {{ trainer.phone }}</span>
+            {% if trainer.email %}<span>✉️ {{ trainer.email }}</span>{% endif %}
+            <span class="highlight">⭐ {{ trainer.experience_years }} year{{ trainer.experience_years|pluralize }} of experience</span>
+            <span>👥 {{ trainer.member_set.count }} member{{ trainer.member_set.count|pluralize }} assigned</span>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div style="text-align:center; padding:4rem; color:#8892b0;">
+    <p style="font-size:3rem; margin-bottom:1rem;">🏋️</p>
+    <p>No trainers yet. {% if user.is_staff %}<a href="{% url 'add_trainer' %}" style="color:#00ff88;">Add the first trainer!</a>{% endif %}</p>
+</div>
+{% endif %}
+{% endblock %}

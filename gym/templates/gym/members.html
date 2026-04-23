@@ -1,0 +1,183 @@
+{% extends 'gym/base.html' %}
+{% block content %}
+<style>
+    .search-bar {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+        animation: fadeIn 0.4s ease backwards;
+    }
+    .search-bar input {
+        flex: 1;
+        padding: 0.8rem 1.2rem;
+        background: rgba(0,0,0,0.25);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 10px;
+        color: #fff;
+        font-size: 0.95rem;
+        outline: none;
+        transition: border-color 0.3s;
+    }
+    .search-bar input:focus {
+        border-color: #00ff88;
+        box-shadow: 0 0 0 3px rgba(0,255,136,0.1);
+    }
+    .search-bar button {
+        padding: 0.8rem 1.5rem;
+        background: #00ff88;
+        color: #000;
+        border: none;
+        border-radius: 10px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 0.9rem;
+    }
+    .search-bar button:hover { background: #00cc6a; }
+
+    .member-table-wrap {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 16px;
+        overflow: hidden;
+        animation: fadeIn 0.5s ease backwards;
+    }
+    .member-table-wrap table { width: 100%; border-collapse: collapse; }
+    .member-table-wrap th, .member-table-wrap td {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        font-size: 0.9rem;
+    }
+    .member-table-wrap th {
+        color: #8892b0;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+        background: rgba(0,0,0,0.2);
+    }
+    .member-table-wrap tbody tr:hover { background: rgba(255,255,255,0.02); }
+    .member-table-wrap tbody tr:last-child td { border-bottom: none; }
+
+    .avatar {
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #00ff88, #00b4ff);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.85rem;
+        color: #000;
+        margin-right: 0.6rem;
+        vertical-align: middle;
+    }
+    .plan-tag {
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        background: rgba(0,180,255,0.12);
+        color: #00b4ff;
+    }
+    .gender-tag {
+        font-size: 0.78rem;
+        color: #8892b0;
+    }
+    .btn-danger {
+        background: rgba(255,77,109,0.15);
+        color: #ff4d6d;
+        border: 1px solid rgba(255,77,109,0.35);
+        padding: 0.35rem 0.8rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .btn-danger:hover { background: rgba(255,77,109,0.3); }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #8892b0;
+    }
+    .empty-state p:first-child { font-size: 3rem; margin-bottom: 1rem; }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="page-header">
+    <div>
+        <h1 style="font-size:1.8rem; font-weight:800;">👥 Members</h1>
+        <p style="color:#8892b0; margin-top:0.3rem;">All gym members registered in the database.</p>
+    </div>
+    <a href="{% url 'add_member' %}" class="btn">+ Add Member</a>
+</div>
+
+<form method="get" action="{% url 'members' %}" class="search-bar">
+    <input type="text" name="search" placeholder="🔍 Search by name or email…" value="{{ search }}">
+    <button type="submit">Search</button>
+    {% if search %}<a href="{% url 'members' %}" style="padding:0.8rem 1rem; color:#8892b0; text-decoration:none; align-self:center;">✕ Clear</a>{% endif %}
+</form>
+
+{% if members %}
+<div class="member-table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Member</th>
+                <th>Gender</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Plan</th>
+                <th>Trainer</th>
+                <th>Joined</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for member in members %}
+            <tr>
+                <td>
+                    <span class="avatar">{{ member.first_name.0 }}{{ member.last_name.0 }}</span>
+                    <strong>{{ member.first_name }} {{ member.last_name }}</strong>
+                </td>
+                <td><span class="gender-tag">{{ member.gender }}</span></td>
+                <td style="color:#8892b0;">{{ member.email }}</td>
+                <td style="color:#8892b0;">{{ member.phone|default:"—" }}</td>
+                <td>
+                    {% if member.plan %}
+                        <span class="plan-tag">{{ member.plan.name }}</span>
+                    {% else %}—{% endif %}
+                </td>
+                <td style="color:#8892b0;">{{ member.assigned_trainer|default:"—" }}</td>
+                <td style="color:#8892b0; font-size:0.85rem;">{{ member.join_date }}</td>
+                <td>
+                    <form method="post" action="{% url 'delete_member' member.id %}"
+                          onsubmit="return confirm('Delete {{ member.first_name }}?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-danger">🗑️ Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state">
+    <p>👥</p>
+    {% if search %}
+        <p>No members found for "<strong>{{ search }}</strong>".</p>
+        <a href="{% url 'members' %}" style="color:#00ff88; text-decoration:none;">Clear search</a>
+    {% else %}
+        <p>No members yet. <a href="{% url 'add_member' %}" style="color:#00ff88;">Add the first member!</a></p>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

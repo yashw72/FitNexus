@@ -1,0 +1,186 @@
+{% extends 'gym/base.html' %}
+{% block content %}
+<style>
+    .eq-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1rem; margin-bottom:2rem; }
+    .eq-stat {
+        background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+        border-radius:14px; padding:1.2rem; text-align:center;
+    }
+    .eq-stat .num { font-size:2rem; font-weight:800; line-height:1; }
+    .eq-stat .lbl { font-size:0.78rem; color:#8892b0; margin-top:0.3rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
+    .eq-stat.green .num { color:#00ff88; }
+    .eq-stat.yellow .num { color:#ffea00; }
+    .eq-stat.red .num { color:#ff4d6d; }
+
+    .filters {
+        display:flex; flex-wrap:wrap; gap:0.75rem; margin-bottom:1.5rem;
+        background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+        border-radius:14px; padding:1.2rem;
+    }
+    .filters input, .filters select {
+        padding:0.7rem 1rem; background:rgba(0,0,0,0.3);
+        border:1px solid rgba(255,255,255,0.1); border-radius:8px;
+        color:#fff; font-size:0.88rem; outline:none; flex:1; min-width:150px;
+        transition:border-color 0.3s;
+    }
+    .filters input:focus, .filters select:focus { border-color:#00ff88; }
+    .filters select option { background:#1a1c2a; }
+    .filters button {
+        padding:0.7rem 1.4rem; background:#00ff88; color:#000;
+        border:none; border-radius:8px; font-weight:700; cursor:pointer; transition:all 0.3s;
+    }
+    .filters button:hover { background:#00cc6a; }
+    .filters a {
+        padding:0.7rem 1rem; color:#8892b0; text-decoration:none;
+        border:1px solid rgba(255,255,255,0.1); border-radius:8px; font-size:0.88rem;
+        transition:all 0.3s; white-space:nowrap;
+    }
+    .filters a:hover { border-color:#ff4d6d; color:#ff4d6d; }
+
+    .eq-table-wrap {
+        background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+        border-radius:16px; overflow:hidden;
+    }
+    .eq-table-wrap table { width:100%; border-collapse:collapse; }
+    .eq-table-wrap th, .eq-table-wrap td {
+        padding:0.95rem 1.25rem; border-bottom:1px solid rgba(255,255,255,0.06); font-size:0.88rem;
+    }
+    .eq-table-wrap th {
+        color:#8892b0; font-size:0.75rem; text-transform:uppercase;
+        letter-spacing:0.5px; font-weight:600; background:rgba(0,0,0,0.2);
+    }
+    .eq-table-wrap tbody tr:hover { background:rgba(255,255,255,0.02); }
+    .eq-table-wrap tbody tr:last-child td { border-bottom:none; }
+
+    .badge { padding:0.25rem 0.65rem; border-radius:20px; font-size:0.75rem; font-weight:700; }
+    .badge-active      { background:rgba(0,255,136,0.12); color:#00ff88; }
+    .badge-maintenance { background:rgba(255,234,0,0.12); color:#ffea00; }
+    .badge-broken      { background:rgba(255,0,85,0.12);  color:#ff4d6d; }
+
+    .action-cell { display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap; }
+    .status-form select {
+        background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1);
+        color:#fff; padding:0.3rem 0.5rem; border-radius:6px; font-size:0.8rem; outline:none;
+    }
+    .btn-sm {
+        padding:0.3rem 0.75rem; background:#00ff88; color:#000;
+        border:none; border-radius:6px; font-size:0.78rem; font-weight:700; cursor:pointer; transition:all 0.3s;
+    }
+    .btn-sm:hover { background:#00cc6a; }
+    .btn-danger {
+        background:rgba(255,77,109,0.15); color:#ff4d6d;
+        border:1px solid rgba(255,77,109,0.35);
+        padding:0.3rem 0.75rem; border-radius:6px;
+        font-size:0.78rem; font-weight:600; cursor:pointer; transition:all 0.3s;
+    }
+    .btn-danger:hover { background:rgba(255,77,109,0.3); }
+</style>
+
+<div class="page-header">
+    <div>
+        <h1 style="font-size:1.8rem; font-weight:800;">⚙️ Equipment Inventory</h1>
+        <p style="color:#8892b0; margin-top:0.3rem;">Track all gym equipment, status, and maintenance schedule.</p>
+    </div>
+    {% if user.is_staff %}<a href="{% url 'add_equipment' %}" class="btn">+ Add Equipment</a>{% endif %}
+</div>
+
+<div class="eq-stats">
+    <div class="eq-stat green">
+        <div class="num">{{ active_count }}</div>
+        <div class="lbl">✅ Active</div>
+    </div>
+    <div class="eq-stat yellow">
+        <div class="num">{{ maintenance_count }}</div>
+        <div class="lbl">🔧 Maintenance</div>
+    </div>
+    <div class="eq-stat red">
+        <div class="num">{{ broken_count }}</div>
+        <div class="lbl">❌ Out of Order</div>
+    </div>
+</div>
+
+<form method="get" action="{% url 'equipment' %}" class="filters">
+    <input type="text" name="search" placeholder="🔍 Search equipment…" value="{{ search_q }}">
+    <select name="type">
+        <option value="">All Types</option>
+        {% for t in all_types %}
+        <option value="{{ t }}" {% if t == selected_type %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+    </select>
+    <select name="status">
+        <option value="">All Statuses</option>
+        <option value="Active"              {% if selected_status == 'Active' %}selected{% endif %}>Active</option>
+        <option value="Maintenance needed"  {% if selected_status == 'Maintenance needed' %}selected{% endif %}>Maintenance needed</option>
+        <option value="Out of order"        {% if selected_status == 'Out of order' %}selected{% endif %}>Out of order</option>
+    </select>
+    <button type="submit">Filter</button>
+    {% if search_q or selected_type or selected_status %}
+    <a href="{% url 'equipment' %}">✕ Clear</a>
+    {% endif %}
+</form>
+
+{% if equipment %}
+<div class="eq-table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Qty</th>
+                <th>Location</th>
+                <th>Purchase Date</th>
+                <th>Next Maintenance</th>
+                {% if user.is_staff %}<th>Actions</th>{% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in equipment %}
+            <tr>
+                <td><strong>{{ item.name }}</strong></td>
+                <td style="color:#8892b0;">{{ item.equipment_type }}</td>
+                <td>
+                    {% if item.status == 'Active' %}
+                        <span class="badge badge-active">Active</span>
+                    {% elif item.status == 'Maintenance needed' %}
+                        <span class="badge badge-maintenance">Maintenance</span>
+                    {% else %}
+                        <span class="badge badge-broken">Out of Order</span>
+                    {% endif %}
+                </td>
+                <td style="color:#8892b0;">{{ item.quantity }}</td>
+                <td style="color:#8892b0;">{{ item.location|default:"—" }}</td>
+                <td style="color:#8892b0; font-size:0.82rem;">{{ item.purchase_date|default:"—" }}</td>
+                <td style="color:#8892b0; font-size:0.82rem;">{{ item.next_maintenance_date|default:"—" }}</td>
+                {% if user.is_staff %}
+                <td>
+                    <div class="action-cell">
+                        <form method="post" action="{% url 'update_equipment_status' item.id %}" class="status-form" style="display:flex;gap:0.4rem;align-items:center;">
+                            {% csrf_token %}
+                            <select name="status">
+                                <option value="Active"             {% if item.status == 'Active' %}selected{% endif %}>Active</option>
+                                <option value="Maintenance needed" {% if item.status == 'Maintenance needed' %}selected{% endif %}>Maintenance</option>
+                                <option value="Out of order"       {% if item.status == 'Out of order' %}selected{% endif %}>Out of Order</option>
+                            </select>
+                            <button type="submit" class="btn-sm">✓</button>
+                        </form>
+                        <form method="post" action="{% url 'delete_equipment' item.id %}"
+                              onsubmit="return confirm('Delete {{ item.name }}?')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-danger">🗑️</button>
+                        </form>
+                    </div>
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div style="text-align:center; padding:4rem; color:#8892b0;">
+    <p style="font-size:3rem; margin-bottom:1rem;">⚙️</p>
+    <p>No equipment found. {% if user.is_staff %}<a href="{% url 'add_equipment' %}" style="color:#00ff88;">Add equipment!</a>{% endif %}</p>
+</div>
+{% endif %}
+{% endblock %}

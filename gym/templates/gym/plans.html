@@ -1,0 +1,136 @@
+{% extends 'gym/base.html' %}
+{% block content %}
+<style>
+    .plans-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    .plan-card {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 20px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .plan-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+        border-radius: 20px 20px 0 0;
+    }
+    .plan-card.basic::before   { background: linear-gradient(90deg,#00b4ff,#0096ff); }
+    .plan-card.pro::before     { background: linear-gradient(90deg,#b06eff,#7c3aed); }
+    .plan-card.elite::before   { background: linear-gradient(90deg,#ffea00,#f59e0b); }
+    .plan-card:nth-child(n+4)::before { background: linear-gradient(90deg,#00ff88,#00cc6a); }
+
+    .plan-card:hover {
+        transform: translateY(-6px);
+        border-color: rgba(0,255,136,0.25);
+        box-shadow: 0 12px 35px rgba(0,0,0,0.4);
+    }
+    .plan-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+    .plan-name { font-size: 1.3rem; font-weight: 800; margin-bottom: 0.5rem; }
+    .plan-price {
+        font-size: 2.8rem;
+        font-weight: 800;
+        color: #00ff88;
+        line-height: 1;
+        margin-bottom: 0.4rem;
+    }
+    .plan-price sup { font-size: 1.2rem; vertical-align: super; }
+    .plan-duration {
+        color: #8892b0;
+        font-size: 0.88rem;
+        margin-bottom: 1.5rem;
+    }
+    .plan-divider {
+        height: 1px;
+        background: rgba(255,255,255,0.08);
+        margin: 1.25rem 0;
+    }
+    .plan-features { list-style: none; text-align: left; margin-bottom: 1.5rem; }
+    .plan-features li {
+        padding: 0.4rem 0;
+        font-size: 0.88rem;
+        color: #8892b0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .plan-features li span.check { color: #00ff88; font-weight: 700; }
+    .plan-tag {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        background: rgba(0,255,136,0.12);
+        color: #00ff88;
+        margin-top: 0.5rem;
+    }
+    .plan-members-count {
+        font-size: 0.82rem;
+        color: #8892b0;
+        margin-top: 0.75rem;
+    }
+</style>
+
+<div class="page-header">
+    <div>
+        <h1 style="font-size:1.8rem; font-weight:800;">💳 Membership Plans</h1>
+        <p style="color:#8892b0; margin-top:0.3rem;">All available membership plans and pricing from the database.</p>
+    </div>
+</div>
+
+{% if plans %}
+<div class="plans-grid">
+    {% for plan in plans %}
+    <div class="plan-card {% if 'basic' in plan.name|lower %}basic{% elif 'pro' in plan.name|lower %}pro{% elif 'elite' in plan.name|lower %}elite{% endif %}">
+        <div class="plan-icon">
+            {% if 'basic' in plan.name|lower %}🥉
+            {% elif 'pro' in plan.name|lower %}🥈
+            {% elif 'elite' in plan.name|lower %}🥇
+            {% else %}💳{% endif %}
+        </div>
+        <div class="plan-name">{{ plan.name }}</div>
+        <div class="plan-price"><sup>₹</sup>{{ plan.price }}</div>
+        <div class="plan-duration">per {{ plan.duration_months }} month{{ plan.duration_months|pluralize }}</div>
+
+        <div class="plan-divider"></div>
+
+        <ul class="plan-features">
+            <li><span class="check">✓</span> Full gym access</li>
+            <li><span class="check">✓</span> Locker room access</li>
+            {% if plan.duration_months >= 3 %}
+            <li><span class="check">✓</span> Trainer consultation</li>
+            {% endif %}
+            {% if plan.duration_months >= 6 %}
+            <li><span class="check">✓</span> Nutrition guidance</li>
+            <li><span class="check">✓</span> Priority booking</li>
+            {% endif %}
+            {% if plan.duration_months >= 12 %}
+            <li><span class="check">✓</span> Personal trainer (2x/week)</li>
+            <li><span class="check">✓</span> Body composition analysis</li>
+            {% endif %}
+        </ul>
+
+        <span class="plan-tag">{{ plan.duration_months }} Month{{ plan.duration_months|pluralize }}</span>
+        <div class="plan-members-count">
+            👥 {{ plan.member_set.count }} member{{ plan.member_set.count|pluralize }} enrolled
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div style="text-align:center; padding:4rem; color:#8892b0;">
+    <p style="font-size:3rem; margin-bottom:1rem;">💳</p>
+    <p>No membership plans found. Add plans via <a href="/admin/" style="color:#00ff88;">Django Admin</a>.</p>
+</div>
+{% endif %}
+{% endblock %}
