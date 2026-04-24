@@ -1,6 +1,6 @@
 <div align="center">
  
- 
+<pre align="center">
 ```
 ███████╗██╗████████╗███╗   ██╗███████╗██╗  ██╗██╗   ██╗███████╗
 ██╔════╝██║╚══██╔══╝████╗  ██║██╔════╝╚██╗██╔╝██║   ██║██╔════╝
@@ -9,14 +9,13 @@
 ██║     ██║   ██║   ██║ ╚████║███████╗██╔╝ ██╗╚██████╔╝███████║
 ╚═╝     ╚═╝   ╚═╝   ╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝
 ```
-
+</pre>
 <h3>⚡ Gym Management System — Powered by Django & MySQL</h3>
 
 <p>
   <img src="https://img.shields.io/badge/Django-4.x-092E20?style=for-the-badge&logo=django&logoColor=white"/>
   <img src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white"/>
   <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white"/>
-  <img src="https://img.shields.io/badge/Bootstrap-5.x-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white"/>
   <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge"/>
 </p>
 
