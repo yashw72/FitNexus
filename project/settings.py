@@ -1,5 +1,5 @@
 """
-Django settings for antigravity_project project.
+Django settings for project project.
 """
 
 from pathlib import Path
@@ -36,7 +36,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'antigravity_project.urls'
+ROOT_URLCONF = 'project.urls'
 
 TEMPLATES = [
     {
@@ -53,7 +53,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'antigravity_project.wsgi.application'
+WSGI_APPLICATION = 'project.wsgi.application'
 
 # Database - MySQL
 DATABASES = {
