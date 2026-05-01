@@ -16,28 +16,28 @@
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.25rem;">
             <div class="form-group">
                 <label class="form-label">Full Name *</label>
-                <input type="text" name="name" class="form-input" placeholder="e.g. Rahul Sharma" required>
+                <input type="text" name="name" class="form-input" placeholder="e.g. Rahul Sharma" value="{{ form_data.name }}" required>
             </div>
             <div class="form-group">
                 <label class="form-label">Specialty *</label>
-                <input type="text" name="specialty" class="form-input" placeholder="e.g. Strength Training" required>
+                <input type="text" name="specialty" class="form-input" placeholder="e.g. Strength Training" value="{{ form_data.specialty }}" required>
             </div>
         </div>
 
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.25rem;">
             <div class="form-group">
                 <label class="form-label">Phone Number *</label>
-                <input type="text" name="phone" class="form-input" placeholder="+91 98765 43210" required>
+                <input type="text" name="phone" class="form-input" placeholder="+91 98765 43210" value="{{ form_data.phone }}" required>
             </div>
             <div class="form-group">
                 <label class="form-label">Experience (Years) *</label>
-                <input type="number" name="experience_years" class="form-input" min="1" max="50" value="3" required>
+                <input type="number" name="experience_years" class="form-input" min="1" max="50" value="{{ form_data.experience_years|default:3 }}" required>
             </div>
         </div>
 
         <div class="form-group" style="margin-bottom:1.5rem;">
             <label class="form-label">Email Address</label>
-            <input type="email" name="email" class="form-input" placeholder="trainer@elitegym.com">
+            <input type="email" name="email" class="form-input" placeholder="trainer@elitegym.com" value="{{ form_data.email }}">
         </div>
 
         <button type="submit" class="btn" style="width:100%; padding:1rem; font-size:1rem;">

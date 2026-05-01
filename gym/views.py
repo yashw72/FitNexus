@@ -90,6 +90,17 @@ def add_member(request):
         plan_id = request.POST.get('plan')
         trainer_id = request.POST.get('trainer')
 
+        # Check for duplicate email
+        if Member.objects.filter(email=email).exists():
+            messages.error(request, f'❌ A member with the email "{email}" is already registered.')
+            plans = MembershipPlan.objects.all()
+            trainers = Trainer.objects.all()
+            return render(request, 'gym/add_member.html', {
+                'plans': plans, 
+                'trainers': trainers,
+                'form_data': request.POST
+            })
+
         plan = MembershipPlan.objects.filter(id=plan_id).first() if plan_id else None
         trainer = Trainer.objects.filter(id=trainer_id).first() if trainer_id else None
 
@@ -142,7 +153,9 @@ def add_trainer(request):
         try:
             experience_years = int(request.POST.get('experience_years', 1))
         except (ValueError, TypeError):
-            experience_years = 1
+            messages.error(request, '❌ Experience years must be a number.')
+            return render(request, 'gym/add_trainer.html', {'form_data': request.POST})
+
         Trainer.objects.create(
             name=name,
             specialty=specialty,
